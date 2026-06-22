@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emitrac: Auditable Carbon Accounting for CBAM Compliance</title>
+    <style>
+        :root {
+            --color-primary: #0a0e27;
+            --color-secondary: #1a1f3a;
+            --color-accent: #00ff88;
+            --color-bg: #050609;
+            --color-text: #f0f4ff;
+            --color-surface: color-mix(in srgb, #050609 85%, #0a0e27 15%);
+            --color-border: color-mix(in srgb, #f0f4ff 15%, transparent 85%);
+            --color-muted: color-mix(in srgb, #f0f4ff 55%, transparent 45%);
+            --font-headline: 'Space Grotesk', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, sans-serif;
+            --radius: 0.75rem;
+            --radius-lg: 1.5rem;
+            --transition: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.65;
+            overflow-x: hidden;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 1;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: color-mix(in srgb, var(--color-bg) 80%, transparent);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--color-border);
+            transition: background var(--transition);
+        }
+
+        header.scrolled {
+            background: color-mix(in srgb, var(--color-bg) 70%, var(--color-primary) 20%);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem clamp(1rem, 5vw, 2.5rem);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-family: var(--font-headline);
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .logo span {
+            color: var(--color-accent);
+        }
+
+        .nav-desktop {
+            display: none;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .nav-desktop {
+                display: flex;
+            }
+        }
+
+        .nav-desktop a {
+            color: var(--color-text);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color var(--transition);
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .nav-desktop a:nth-child(1) { animation-delay: 0.1s; }
+        .nav-desktop a:nth-child(2) { animation-delay: 0.2s; }
+        .nav-desktop a:nth-child(3) { animation-delay: 0.3s; }
+        .nav-desktop a:nth-child(4) { animation-delay: 0.4s; }
+
+        .nav-desktop a:hover,
+        .nav-desktop a:focus {
+            color: var(--color-accent);
+            outline: none;
+        }
+
+        .cta-button {
+            background: var(--color-accent);
+            color: var(--color-primary);
+            border: none;
+            border-radius: 9999px;
+            padding: 0.75rem 2rem;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            box-shadow: 0 0 40px color-mix(in srgb, var(--color-accent) 20%, transparent);
+            animation: fadeInUp 0.5s ease-out both;
+            animation-delay: 0.5s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover,
+        .cta-button:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 0 60px color-mix(in srgb, var(--color-accent) 30%, transparent);
+            outline: none;
+        }
+
+        .cta-button.ghost {
+            background: transparent;
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+            box-shadow: none;
+        }
+
+        .cta-button.ghost:hover {
+            background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+            border-color: var(--color-accent);
+            box-shadow: none;
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            animation: fadeInUp 0.5s ease-out both;
+            animation-delay: 0.5s;
+        }
+
+        .hamburger span {
+            width: 24px;
+            height: 2px;
+            background: var(--color-text);
+            border-radius: 2px;
+            transition: all var(--transition);
+        }
+
+        body.nav-open .hamburger span:nth-child(1) {
+            transform: rotate(45deg) translateY(10px);
+        }
+
+        body.nav-open .hamburger span:nth-child(2) {
+            opacity: 1;
+        }
+
+        body.nav-open .hamburger span:nth-child(3) {
+            transform: rotate(-45deg) translateY(-10px);
+        }
+
+        @media (min-width: 768px) {
+            .hamburger {
+                display: none;
+            }
+        }
+
+        .nav-mobile {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--color-bg);
+            backdrop-filter: blur(20px);
+            padding: 6rem 2rem 2rem;
+            z-index: 99;
+            display: none;
+            animation: slideInRight 0.3s ease-out both;
+        }
+
+        body.nav-open .nav-mobile {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .nav-mobile a {
+            color: var(--color-text);
+            text-decoration: none;
+            font-size: 1.25rem;
+            font-weight: 500;
+            transition: color var(--transition);
+        }
+
+        .nav-mobile a:hover {
+            color: var(--color-accent);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(3rem, 10vw, 6rem) clamp(1rem, 5vw, 2.5rem);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 150%;
+            height: 150%;
+            background: 
+                radial-gradient(ellipse 80% 50% at 20% 0%, color-mix(in srgb, var(--color-accent) 8%, transparent) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, color-mix(in srgb, var(--color-primary) 15%, transparent) 0%, transparent 60%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: color-mix(in srgb, var(--color-primary) 70%, transparent);
+            border: 1px solid var(--color-border);
+            border-radius: 9999px;
+            padding: 0.5rem 1.5rem;
+            font-size: 0.85rem;
+            color: var(--color-accent);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.5s ease-out both;
+            backdrop-filter: blur(12px);
+        }
+
+        .hero h1 {
+            font-family: var(--font-headline);
+            font-size: clamp(2.75rem, 6vw, 5rem);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+            animation: fadeInUp 0.5s ease-out both;
+            animation-delay: 0.1s;
+        }
+
+        .hero p {
+            font-size: clamp(1.05rem, 2vw, 1.3rem);
+            color: var(--color-muted);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 0.5s ease-out both;
+            animation-delay: 0.2s;
+        }
+
+        .hero-ctas {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            animation: fadeInUp 0.5s ease-out both;
+            animation-delay: 0.3s;
+        }
+
+        @media (min-width: 640px) {
+            .hero-ctas {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+
+        /* Social Proof */
+        .social-proof {
+            border-top: 1px solid var(--color-border);
+            border-bottom: 1px solid var(--color-border);
+            background: var(--color-surface);
+            padding: clamp(2rem, 5vw, 3rem) clamp(1rem, 5vw, 2.5rem);
+        }
+
+        .social-proof-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .social-proof-container {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+
+        .proof-stat {
+            font-size: clamp(0.95rem, 2vw, 1.05rem);
+            line-height: 1.6;
+            color: var(--color-text);
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .proof-logos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .proof-logos {
+                justify-content: flex-start;
+            }
+        }
+
+        .proof-logo {
+            font-family: var(--font-headline);
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--color-muted);
+            letter-spacing: 0.05em;
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .proof-logo:nth-child(1) { animation-delay: 0.1s; }
+        .proof-logo:nth-child(2) { animation-delay: 0.15s; }
+        .proof-logo:nth-child(3) { animation-delay: 0.2s; }
+        .proof-logo:nth-child(4) { animation-delay: 0.25s; }
+        .proof-logo:nth-child(5) { animation-delay: 0.3s; }
+
+        /* Problem Solution */
+        .problem-solution {
+            padding: clamp(5rem, 10vw, 9rem) clamp(1rem, 5vw, 2.5rem);
+        }
+
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .ps-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(2rem, 5vw, 4rem);
+        }
+
+        @media (min-width: 1024px) {
+            .ps-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .ps-card {
+            background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: clamp(2rem, 5vw, 3rem);
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .ps-card:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .ps-card h3 {
+            font-family: var(--font-headline);
+            font-size: clamp(1.5rem, 3vw, 1.875rem);
+            font-weight: 700;
+            margin-bottom: 2rem;
+            line-height: 1.2;
+        }
+
+        .ps-card ul {
+            list-style: none;
+        }
+
+        .ps-card li {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .ps-card li::before {
+            content: '◆';
+            color: var(--color-accent);
+            flex-shrink: 0;
+            font-weight: 800;
+        }
+
+        /* Features Grid */
+        .features {
+            padding: clamp(5rem, 10vw, 9rem) clamp(1rem, 5vw, 2.5rem);
+            background: 
+                radial-gradient(ellipse 100% 60% at 50% 100%, color-mix(in srgb, var(--color-primary) 10%, transparent) 0%, transparent 70%);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: clamp(2rem, 4vw, 2.5rem);
+            margin-top: clamp(3rem, 5vw, 4rem);
+        }
+
+        .feature-card {
+            background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: clamp(1.75rem, 4vw, 2.5rem);
+            transition: all var(--transition);
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0s; }
+        .feature-card:nth-child(2) { animation-delay: 0.1s; }
+        .feature-card:nth-child(3) { animation-delay: 0.2s; }
+        .feature-card:nth-child(4) { animation-delay: 0.3s; }
+        .feature-card:nth-child(5) { animation-delay: 0.4s; }
+        .feature-card:nth-child(6) { animation-delay: 0.5s; }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--color-accent);
+            box-shadow: 0 20px 60px color-mix(in srgb, var(--color-accent) 10%, transparent);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: var(--color-accent);
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .feature-card h4 {
+            font-family: var(--font-headline);
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: var(--color-muted);
+            line-height: 1.65;
+        }
+
+        section h2 {
+            font-family: var(--font-headline);
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.01em;
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        /* Metrics */
+        .metrics {
+            padding: clamp(5rem, 10vw, 9rem) clamp(1rem, 5vw, 2.5rem);
+            background: 
+                linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 80%, transparent) 0%, color-mix(in srgb, var(--color-secondary) 60%, transparent) 100%),
+                radial-gradient(ellipse 100% 60% at 50% 0%, color-mix(in srgb, var(--color-accent) 5%, transparent) 0%, transparent 70%);
+            position: relative;
+        }
+
+        .metrics-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: clamp(2rem, 5vw, 4rem);
+            margin-top: clamp(3rem, 5vw, 4rem);
+        }
+
+        .metric-item {
+            text-align: center;
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .metric-item:nth-child(1) { animation-delay: 0s; }
+        .metric-item:nth-child(2) { animation-delay: 0.1s; }
+        .metric-item:nth-child(3) { animation-delay: 0.2s; }
+        .metric-item:nth-child(4) { animation-delay: 0.3s; }
+        .metric-item:nth-child(5) { animation-delay: 0.4s; }
+
+        .metric-value {
+            font-family: var(--font-headline);
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            color: var(--color-accent);
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.95rem;
+            color: var(--color-muted);
+            line-height: 1.5;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: clamp(5rem, 10vw, 9rem) clamp(1rem, 5vw, 2.5rem);
+        }
+
+        .steps-container {
+            margin-top: clamp(3rem, 5vw, 4rem);
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 2rem;
+            margin-bottom: clamp(3rem, 5vw, 4rem);
+            position: relative;
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .step:nth-child(1) { animation-delay: 0s; }
+        .step:nth-child(2) { animation-delay: 0.1s; }
+        .step:nth-child(3) { animation-delay: 0.2s; }
+        .step:nth-child(4) { animation-delay: 0.3s; }
+
+        @media (min-width: 768px) {
+            .step:nth-child(even) {
+                grid-template-columns: 1fr 80px;
+                direction: rtl;
+            }
+
+            .step:nth-child(even) > * {
+                direction: ltr;
+            }
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            background: var(--color-primary);
+            border: 2px solid var(--color-accent);
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-headline);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--color-accent);
+            flex-shrink: 0;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 40px;
+            top: 80px;
+            width: 2px;
+            height: 120px;
+            background: linear-gradient(180deg, var(--color-accent) 0%, transparent 100%);
+        }
+
+        @media (min-width: 768px) {
+            .step:not(:last-child)::after {
+                display: none;
+            }
+        }
+
+        .step-content h4 {
+            font-family: var(--font-headline);
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
+        }
+
+        .step-content p {
+            color: var(--color-muted);
+            font-size: 0.95rem;
+            line-height: 1.65;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: clamp(5rem, 10vw, 9rem) clamp(1rem, 5vw, 2.5rem);
+            background: 
+                radial-gradient(ellipse 80% 50% at 80% 20%, color-mix(in srgb, var(--color-primary) 12%, transparent) 0%, transparent 70%);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: clamp(2rem, 4vw, 2.5rem);
+            margin-top: clamp(3rem, 5vw, 4rem);
+        }
+
+        .testimonial-card {
+            background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: clamp(1.75rem, 4vw, 2.5rem);
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .testimonial-card:nth-child(1) { animation-delay: 0s; }
+        .testimonial-card:nth-child(2) { animation-delay: 0.1s; }
+        .testimonial-card:nth-child(3) { animation-delay: 0.2s; }
+        .testimonial-card:nth-child(4) { animation-delay: 0.3s; }
+
+        .testimonial-quote {
+            font-size: 2rem;
+            color: var(--color-accent);
+            margin-bottom: 1rem;
+            line-height: 1;
+        }
+
+        .testimonial-text {
+            font-size: 0.95rem;
+            line-height: 1.65;
+            color: var(--color-text);
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .testimonial-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 9999px;
+            background: color-mix(in srgb, var(--color-accent) 20%, var(--color-primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-headline);
+            font-weight: 700;
+            color: var(--color-accent);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .testimonial-meta h5 {
+            font-family: var(--font-headline);
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .testimonial-meta p {
+            font-size: 0.8rem;
+            color: var(--color-muted);
+        }
+
+        /* Final CTA */
+        .final-cta {
+            padding: clamp(5rem, 10vw, 9rem) clamp(1rem, 5vw, 2.5rem);
+            background: 
+                linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%),
+                radial-gradient(ellipse 100% 80% at 50% 0%, color-mix(in srgb, var(--color-accent) 8%, transparent) 0%, transparent 70%);
+            position: relative;
+            text-align: center;
+        }
+
+        .final-cta-content {
+            max-width: 700px;
+            margin: 0 auto;
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .final-cta h2 {
+            text-align: center;
+        }
+
+        .final-cta p {
+            font-size: 1.05rem;
+            color: var(--color-muted);
+            margin: 1.5rem 0 2.5rem;
+            line-height: 1.65;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            padding: clamp(3rem, 8vw, 5rem) clamp(1rem, 5vw, 2.5rem);
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: clamp(2rem, 4vw, 4rem);
+            margin-bottom: 3rem;
+        }
+
+        .footer-col h4 {
+            font-family: var(--font-headline);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text);
+        }
+
+        .footer-col a {
+            display: block;
+            color: var(--color-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            transition: color var(--transition);
+        }
+
+        .footer-col a:hover {
+            color: var(--color-accent);
+        }
+
+        .footer-logo {
+            font-family: var(--font-headline);
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .footer-logo span {
+            color: var(--color-accent);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--color-border);
+            padding-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        @media (min-width: 640px) {
+            .footer-bottom {
+                flex-direction: row;
+            }
+        }
+
+        .footer-copyright {
+            font-size: 0.85rem;
+            color: var(--color-muted);
+        }
+
+        .footer-socials {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .social-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-muted);
+            transition: color var(--transition);
+            text-decoration: none;
+        }
+
+        .social-icon:hover {
+            color: var(--color-accent);
+        }
+
+        .social-icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        /* Utility */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: clamp(1rem, 5vw, 2.5rem);
+            padding-right: clamp(1rem, 5vw, 2.5rem);
+        }
+
+        /* Accessibility */
+        a:focus,
+        button:focus {
+            outline: 2px solid var(--color-accent);
+            outline-offset: 3px;
+        }
+
+        .hamburger:focus {
+            outline: 2px solid var(--color-accent);
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">emit<span>rac</span></div>
+            
+            <nav class="nav-desktop">
+                <a href="#features">Features</a>
+                <a href="#how">How It Works</a>
+                <a href="#testimonials">Testimonials</a>
+                <a href="#contact">Contact</a>
+                <button class="cta-button">Start Free Pilot</button>
+            </nav>
+
+            <button class="hamburger" aria-label="Toggle navigation menu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        <nav class="nav-mobile">
+            <a href="#features">Features</a>
+            <a href="#how">How It Works</a>
+            <a href="#testimonials">Testimonials</a>
+            <a href="#contact">Contact</a>
+            <button class="cta-button">Start Free Pilot</button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="hero">
+            <div class="hero-content">
+                <div class="hero-badge">ISO 14064 Ready. CBAM Compliant.</div>
+                <h1>CBAM compliance in 60 days, not 12 months</h1>
+                <p>Auditable CO₂e ledger + native ERP connectors unlock EU market access and green-finance pricing for North African exporters.</p>
+                <div class="hero-ctas">
+                    <button class="cta-button">Start Free Pilot</button>
+                    <button class="cta-button ghost">Watch Demo</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Social Proof -->
+        <section class="social-proof" id="social-proof">
+            <div class="social-proof-container">
+                <div class="proof-stat">Trusted by 23 energy-intensive exporters across Algeria, Tunisia, Morocco</div>
+                <div class="proof-logos">
+                    <div class="proof-logo">SONATRACH</div>
+                    <div class="proof-logo">CEVITAL</div>
+                    <div class="proof-logo">SIDER</div>
+                    <div class="proof-logo">DJEZZY</div>
+                    <div class="proof-logo">SAIDAL</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Problem & Solution -->
+        <section class="problem-solution">
+            <div class="section-container">
+                <div class="ps-grid">
+                    <div class="ps-card">
+                        <h3>CBAM deadlines compress. Your carbon data scattered.</h3>
+                        <ul>
+                            <li>Manual spreadsheets across procurement, energy, operations—no single source of truth for auditors</li>
+                            <li>Generic emission factors don't account for SONELGAZ grid specifics or local industrial processes</li>
+                            <li>Supplier Scope 3 data collection remains adversarial, fragmented, and audit-resistant</li>
+                            <li>12-month compliance timelines risk losing EU buyer relationships and green-finance access</li>
+                        </ul>
+                    </div>
+                    <div class="ps-card">
+                        <h3>Forensic-grade carbon accounting designed for North Africa</h3>
+                        <ul>
+                            <li>Every CO₂e transaction versioned, traceable, and ISO 14064 validated—passing third-party assurance without rework</li>
+                            <li>Native SAP, Oracle, IFS connectors + proprietary North African emission factors calibrated to your grid and processes</li>
+                            <li>Link emissions directly to procurement costs and GL accounts—treating decarbonization as CFO-led cost optimization</li>
+                            <li>Supplier portal automates Scope 3 reconciliation and benchmarking—transforming compliance friction into buyer–supplier transparency</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="features" id="features">
+            <div class="section-container">
+                <h2>Built for auditors, loved by CFOs</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <h4>Ledger every emission transaction</h4>
+                        <p>Every CO₂e entry is timestamped, versioned, and forensically traceable. Pilot customers reduced audit remediation time by 73% compared to spreadsheet-based approaches. Third-party assurance and ISO 14064 validation built in—no external restatements.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M9.4 16.6L4.8 12l-1.4 1.4L9.4 19 21 7.4 19.6 6 9.4 16.6z"/>
+                            </svg>
+                        </div>
+                        <h4>Connect ERP data automatically</h4>
+                        <p>Native connectors to SAP, Oracle, and IFS ingest energy consumption, procurement invoices, and production volumes in real time. North African emission factors (SONELGAZ grid, local industrial benchmarks) applied automatically—no manual calibration or generic methodologies.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2V17zm4 0h-2V7h2V17zm4 0h-2v-4h2V17z"/>
+                            </svg>
+                        </div>
+                        <h4>Map carbon to financial GL</h4>
+                        <p>Link emissions to cost centers, product lines, and procurement spend. CFOs now justify decarbonization as a 2.4× ROI lever vs. regulatory-only framing. Green-finance lenders see auditable cost savings tied to carbon reduction.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                            </svg>
+                        </div>
+                        <h4>Portal automates Scope 3 collection</h4>
+                        <p>Supplier portal with pre-filled templates, anomaly detection, and benchmarking. Reconciliation cycles compress from 8 weeks to 10 days. Strengthens buyer–supplier relationships by replacing adversarial audit requests with collaborative transparency dashboards.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                            </svg>
+                        </div>
+                        <h4>Detect emissions anomalies instantly</h4>
+                        <p>AI-backed rules flag outliers in energy consumption, production ratios, or supplier baselines. Pilot customers caught $47K in unaccounted emissions and process inefficiencies within first 30 days. Early intervention prevents audit surprises.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                            </svg>
+                        </div>
+                        <h4>CBAM report generation, one click</h4>
+                        <p>Pre-built CBAM reporting templates in English and Arabic. Scope 1, 2, 3 calculations pre-validated against EU methodology. Pilot customers moved from draft to audit-ready report in 4 days—vs. 8 weeks with external consultants.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Metrics -->
+        <section class="metrics">
+            <div class="metrics-container">
+                <h2>Proof in the numbers</h2>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value">60 days</div>
+                        <div class="metric-label">CBAM compliance vs. 12 months</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">73%</div>
+                        <div class="metric-label">Audit remediation time saved</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">2.4×</div>
+                        <div class="metric-label">CFO-visible ROI on decarbonization</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">10 days</div>
+                        <div class="metric-label">Scope 3 supplier reconciliation cycle</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">23</div>
+                        <div class="metric-label">Active pilot deployments (MENA)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="how-it-works" id="how">
+            <div class="section-container">
+                <h2>Compliance in four steps</h2>
+                <div class="steps-container">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Connect your ERP systems</h4>
+                            <p>Emitrac provisioning team activates native connectors to SAP, Oracle, or IFS within 48 hours. Energy invoices, production logs, and procurement data begin flowing into your auditable ledger. North African emission factors auto-calibrate to your facility baseline.</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Map emissions to GL accounts</h4>
+                            <p>Our team links CO₂e calculations to your cost centers and product lines. CFOs immediately see carbon as a procurement and production optimization lever. Green-finance lenders gain visibility into quantifiable cost-reduction pathways.</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Activate supplier portal</h4>
+                            <p>Invite Scope 3 suppliers via single portal login. Pre-filled templates, anomaly detection, and peer benchmarking replace adversarial email chains. Reconciliation compresses to 10 days; buyer–supplier trust strengthens.</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Generate CBAM report</h4>
+                            <p>Pre-built reporting engine pre-validates all calculations against EU methodology. One-click export in English and Arabic. Audit-ready PDF delivered within hours. Third-party assurance sign-off typically follows within 2 weeks.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials" id="testimonials">
+            <div class="section-container">
+                <h2>Trusted by MENA leaders</h2>
+                <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote">"</div>
+                        <p class="testimonial-text">Emitrac cut our CBAM compliance timeline from 14 months to 48 days. We now have auditable CO₂e ledger and EU buyer confidence. Green-finance lenders moved from skeptical to pricing favorable rates within 6 weeks.</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">KB</div>
+                            <div class="testimonial-meta">
+                                <h5>Karim Benkhalil</h5>
+                                <p>Export Director, CEVITAL Group</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote">"</div>
+                        <p class="testimonial-text">Linking carbon to our GL accounts transformed the CFO narrative. We quantified $2.3M in annual procurement cost savings tied to decarbonization. Board now treats carbon reduction as a P&L driver, not just compliance overhead.</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">FO</div>
+                            <div class="testimonial-meta">
+                                <h5>Fatima Ouarab</h5>
+                                <p>Chief Financial Officer, Soummam Industries</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote">"</div>
+                        <p class="testimonial-text">The supplier portal eliminated 6 weeks of manual Scope 3 chasing emails. Our 47 Tier 1 suppliers now submit data directly with anomaly alerts built in. Audit prep is no longer the procurement team's nightmare.</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">MES</div>
+                            <div class="testimonial-meta">
+                                <h5>Mohamed El-Amine Saidi</h5>
+                                <p>Procurement Manager, SIDER Algeria</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote">"</div>
+                        <p class="testimonial-text">Native SAP connectors meant zero manual data extraction. North African emission factors were already calibrated to SONELGAZ grid specs. Our compliance team signed off on CBAM submission with forensic confidence within 35 days.</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">NB</div>
+                            <div class="testimonial-meta">
+                                <h5>Dr. Nadia Bouazza</h5>
+                                <p>Compliance Officer, SAIDAL Pharmaceuticals</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA -->
+        <section class="final-cta" id="contact">
+            <div class="final-cta-content">
+                <h2>Secure CBAM compliance before your competitors move</h2>
+                <p>Early-access pilots currently open. No credit card required. Technical briefing included. Book 30-minute assessment with our MENA compliance team.</p>
+                <button class="cta-button">Claim Your Pilot Slot</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <div class="footer-logo">emit<span>rac</span></div>
+                    <p style="color: var(--color-muted); font-size: 0.9rem;">Auditable carbon accounting for CBAM compliance across North Africa.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Product</h4>
+                    <a href="#features">Features</a>
+                    <a href="#how">How It Works</a>
+                    <a href="#testimonials">Testimonials</a>
+                    <a href="#">Pricing</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <a href="#">About</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Contact</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Security</a>
+                    <a href="#">Compliance</a>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="footer-copyright">© 2024 Emitrac. All rights reserved. Made for the MENA energy transition.</div>
+                <div class="footer-socials">
+                    <a href="#" class="social-icon" aria-label="LinkedIn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-icon" aria-label="X (Twitter)">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.6l-5.165-6.75-5.898 6.75h-3.31l7.73-8.835L2.56 2.25h6.772l4.683 6.202 5.479-6.202zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-icon" aria-label="GitHub">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v 3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile nav toggle
+        const hamburger = document.querySelector('.hamburger');
+        const body = document.body;
+
+        hamburger.addEventListener('click', () => {
+            body.classList.toggle('nav-open');
+            hamburger.setAttribute('aria-expanded', body.classList.contains('nav-open'));
+        });
+
+        // Close mobile nav when link clicked
+        document.querySelectorAll('.nav-mobile a').forEach(link => {
+            link.addEventListener('click', () => {
+                body.classList.remove('nav-open');
+                hamburger.setAttribute('aria-expanded', 'false');
+            });
+        });
+
+        // Sticky header background on scroll
+        const header = document.querySelector('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+</html>
